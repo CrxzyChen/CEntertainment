@@ -12,20 +12,39 @@ abstract class DBModel
 {
     protected $connect;
     protected $driver;
+    protected $db;
 
+    /**
+     * DBModel constructor.
+     * @throws \ReflectionException
+     */
     public function __construct()
     {
-        $this->onCreate();
+        $this->onInitial();
         $this->setDriver();
+        $this->setDatabase();
         $this->connect = new \SimplePhp\Database($this->getDriver());
+        $this->onCreate();
     }
+
+    abstract protected function onInitial();
 
     abstract protected function setDriver();
 
     abstract protected function onCreate();
 
+    protected function setDatabase()
+    {
+    }
+
     private function getDriver(): string
     {
         return $this->driver;
+    }
+
+    public function __get($name)
+    {
+        $this->connect->Collection($name);
+        return $this;
     }
 }

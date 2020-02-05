@@ -103,6 +103,10 @@ class MongoDB implements DatabaseDriver
     public function find_one($query)
     {
         $result = $this->find($query, array("limit" => 1));
-        return $result[0];
+        if (isset($result[0])) {
+            return $result[0];
+        } else {
+            return null;
+        }
     }
 }
