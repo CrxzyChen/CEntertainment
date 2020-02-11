@@ -8,21 +8,12 @@
 
 namespace Models;
 
-
-use MongoDB\BSON\ObjectId;
-
 class Scrapy extends DBModel
 {
 
     protected function onInitial()
     {
         // TODO: Implement onInitial() method.
-    }
-
-    protected function setDriver()
-    {
-        $this->driver = "MongoDB";
-        // TODO: Implement setDriver() method.
     }
 
     protected function onCreate()

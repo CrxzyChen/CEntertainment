@@ -18,15 +18,10 @@ class CEntertainment extends DBModel
         // TODO: Implement onInitial() method.
     }
 
-    protected function setDriver()
-    {
-        $this->driver = "MongoDB";
-    }
 
     protected function onCreate()
     {
         $this->connect->Database("centertainment");
-        // TODO: Implement onCreate() method.
     }
 
     /**
@@ -60,6 +55,4 @@ class CEntertainment extends DBModel
             throw new \SimplePhp\Exception("Resource is not appointed!");
         }
     }
-
-
 }

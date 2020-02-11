@@ -15,12 +15,6 @@ class ImageCloud extends DBModel
         // TODO: Implement onInitial() method.
     }
 
-    protected function setDriver()
-    {
-        $this->driver = "MongoDB";
-        // TODO: Implement setDriver() method.
-    }
-
     protected function onCreate()
     {
         $this->connect->Database("image_cloud");

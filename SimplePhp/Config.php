@@ -36,6 +36,7 @@ class  Config
      * @param bool $force
      * @return mixed results of config search by $key_source
      * @throws Exception
+     * @throws \Exception
      */
     public static function get(string $key, $force = false)
     {

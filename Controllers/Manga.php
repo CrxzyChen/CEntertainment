@@ -21,6 +21,7 @@ class Manga extends ControllerBase
 {
     /**
      * @throws \ReflectionException
+     * @throws \SimplePhp\Exception
      */
     protected function onCreate()
     {
