@@ -50,7 +50,6 @@ abstract class DBModel
 
     public function __get($name)
     {
-        $this->connect->Collection($name);
-        return $this;
+        return $this->connect->Collection($name);
     }
 }

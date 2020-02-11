@@ -23,6 +23,6 @@ class ImageCloud extends DBModel
 
     public function getThumb(int $thumb_id)
     {
-        return $this->connect->Collection("image_pool")->find_one(array("thumb_id" => $thumb_id));
+        return $this->connect->Collection("image_pool")->findOne(array("thumb_id" => $thumb_id));
     }
 }

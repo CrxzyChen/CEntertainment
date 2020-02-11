@@ -26,7 +26,7 @@
     "database": "db"
   },
   "default": {
-    "controller": "Service",
+    "controller": "Index",
     "method": "Index"
   }
 }

@@ -33,6 +33,7 @@ class Manga extends ControllerBase
 
     /**
      * @return mixed
+     * @throws \MongoDB\Driver\Exception\Exception
      * @throws \SimplePhp\Exception
      */
     public function Latest()
@@ -40,9 +41,19 @@ class Manga extends ControllerBase
         $latest = $this->ce->setResource("manga")->getLatest($_GET["limit"] ?? 10, $_GET["skip"] ?? 0);
         foreach ($latest as &$item) {
             $item->thumb = $this->ic->getThumb($item->thumb_id);
-            $item->info = $this->scrapy->{$item->source}->getElementById($item->source_id);
+            $item->info = $this->scrapy->getElementById($item->source, $item->source_id);
             unset($item->info->thumb_urls);
         }
         return $latest;
+    }
+
+
+    /**
+     * @throws \MongoDB\Driver\Exception\Exception
+     * @throws \SimplePhp\Exception
+     */
+    public function upClickedCount()
+    {
+        return $this->ce->setResource("manga")->upClickedCount(isset($_GET["resource_id"]) ? $_GET["resource_id"] : null);
     }
 }

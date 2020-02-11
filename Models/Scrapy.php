@@ -22,8 +22,8 @@ class Scrapy extends DBModel
         // TODO: Implement onCreate() method.
     }
 
-    public function getElementById($id)
+    public function getElementById($source, $id)
     {
-        return $this->connect->driver->find_one(array("_id" => $id));
+        return $this->connect->Collection($source)->findOne(array("_id" => $id));
     }
 }
