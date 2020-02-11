@@ -14,7 +14,7 @@ use stdClass;
 abstract class DBModel
 {
     protected $connect;
-    protected $config;
+    protected $db_config;
     protected $db;
 
     /**
@@ -41,11 +41,11 @@ abstract class DBModel
         $class = get_class($this);
         $class = explode("\\", $class);
         try {
-            $config = \SimplePhp\Config::get("db.$class[1]");
+            $db_config = \SimplePhp\Config::get("db.$class[1]");
         } catch (Exception $e) {
-            $config = \SimplePhp\Config::get("db.default");
+            $db_config = \SimplePhp\Config::get("db.default");
         }
-        return $config;
+        return $db_config;
     }
 
     public function __get($name)
