@@ -10,6 +10,8 @@ namespace Controllers;
 
 
 use Models\CEntertainment;
+use MongoDB\BSON\ObjectId;
+use SimplePhp\Exception;
 
 /**
  * Class User
@@ -41,4 +43,17 @@ class User extends ControllerBase
         return $this->ce->addUser($username, $password);
     }
 
+    /**
+     * @return bool
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function addHistory()
+    {
+        if (isset($_GET["uid"]) && isset($_GET["resource_id"])) {
+            return $this->ce->addHistory($_GET["uid"], new ObjectId($_GET["resource_id"]));
+        } else {
+            throw new Exception("less necessary parameter!");
+        }
+    }
 }

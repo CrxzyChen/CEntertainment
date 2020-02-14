@@ -11,6 +11,8 @@ namespace Controllers;
 use Models\CEntertainment;
 use Models\ImageCloud;
 use Models\Scrapy;
+use MongoDB\BSON\ObjectId;
+use SimplePhp\Exception;
 
 /**
  * @property  \Models\CEntertainment ce
@@ -54,6 +56,10 @@ class Manga extends ControllerBase
      */
     public function upClickedCount()
     {
-        return $this->ce->setResource("manga")->upClickedCount(isset($_GET["resource_id"]) ? $_GET["resource_id"] : null);
+        if (isset($_GET["resource_id"])) {
+            return $this->ce->setResource("manga")->upClickedCount(new ObjectId($_GET["resource_id"]));
+        } else {
+            throw new Exception("Less important param resource id!");
+        }
     }
 }
