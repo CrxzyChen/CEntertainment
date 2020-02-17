@@ -8,21 +8,14 @@
 
 namespace Models;
 
-class ImageCloud extends DBModel
-{
-    protected function onInitial()
-    {
-        // TODO: Implement onInitial() method.
-    }
+use SimplePhp\Network;
 
-    protected function onCreate()
-    {
-        $this->connect->Database("image_cloud");
-        // TODO: Implement onCreate() method.
-    }
+class ImageCloud
+{
 
     public function getThumb(int $thumb_id)
     {
-        return $this->connect->Collection("image_pool")->findOne(array("thumb_id" => $thumb_id));
+        $url = "http://10.0.0.2:4396/?method=getThumbInfo&thumb_id=$thumb_id";
+        return json_decode(Network::get($url));
     }
 }

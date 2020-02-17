@@ -10,7 +10,6 @@ namespace Models;
 
 use Drivers\MongoDB;
 use MongoDB\BSON\ObjectId;
-use SimplePhp\Database;
 use SimplePhp\Exception;
 
 /**
@@ -48,17 +47,88 @@ class CEntertainment extends DBModel
         return true;
     }
 
-    protected
-    function onInitial()
+    /**
+     * @param $uid
+     * @param ObjectId $resource_id
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function addLike(int $uid, ObjectId $resource_id): bool
     {
-        // TODO: Implement onInitial() method.
+        $this->user->findAndModify(array("uid" => $uid), array("\$addToSet" => array("like" => $resource_id)));
+        return true;
     }
 
-
-    protected
-    function onCreate()
+    /**
+     * @param int $uid
+     * @param ObjectId $resource_id
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function isLike(int $uid, ObjectId $resource_id): bool
     {
-        $this->connect->Database("centertainment");
+        $resource = $this->user->count(array("uid" => $uid, "like" => array('$in' => array($resource_id))));
+        if ($resource == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param int $uid
+     * @param ObjectId $resource_id
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function removeLike(int $uid, ObjectId $resource_id): bool
+    {
+        $this->user->findAndModify(array("uid" => $uid), array("\$pull" => array("like" => $resource_id)));
+        return true;
+    }
+
+    /**
+     * @param $uid
+     * @param ObjectId $resource_id
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function addSubscribe(int $uid, ObjectId $resource_id): bool
+    {
+        $this->user->findAndModify(array("uid" => $uid), array("\$addToSet" => array("subscribe" => $resource_id)));
+        return true;
+    }
+
+    /**
+     * @param int $uid
+     * @param ObjectId $resource_id
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function removeSubscribe(int $uid, ObjectId $resource_id): bool
+    {
+        $this->user->findAndModify(array("uid" => $uid), array("\$pull" => array("subscribe" => $resource_id)));
+        return true;
+    }
+
+    /**
+     * @param int $uid
+     * @param ObjectId $resource_id
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function isSubscribe(int $uid, ObjectId $resource_id): bool
+    {
+        $resource = $this->user->count(array("uid" => $uid, "subscribe" => array('$in' => array($resource_id))));
+        if ($resource == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    protected function onCreate()
+    {
         $this->centertainment_info = $this->connect->Collection("centertainment_info");
     }
 
@@ -66,8 +136,7 @@ class CEntertainment extends DBModel
      * @param string $resource
      * @return CEntertainment
      */
-    public
-    function setResource(string $resource): CEntertainment
+    public function setResource(string $resource): CEntertainment
     {
         $this->resource = $this->connect->Collection("{$resource}_resource");
         return $this;
@@ -80,8 +149,7 @@ class CEntertainment extends DBModel
      * @throws \MongoDB\Driver\Exception\Exception
      * @throws Exception
      */
-    public
-    function addUser($username, $password)
+    public function addUser($username, $password)
     {
         try {
             $uid = $this->getUserId();
@@ -111,8 +179,7 @@ class CEntertainment extends DBModel
      * @throws Exception
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public
-    function getLatest($limit = 10, $skip = 0)
+    public function getLatest($limit = 10, $skip = 0)
     {
         $this->isSetResource();
         return $this->resource->find(array(), array("limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => -1)));
@@ -121,8 +188,7 @@ class CEntertainment extends DBModel
     /**
      * @throws Exception
      */
-    private
-    function isSetResource()
+    private function isSetResource()
     {
         if (!$this->resource) {
             throw new Exception("Resource is not appointed!");
@@ -133,8 +199,7 @@ class CEntertainment extends DBModel
      * @return int
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    private
-    function getUserId()
+    private function getUserId()
     {
         if (!$this->centertainment_info->findOne(array("info" => "user"))) {
             $this->centertainment_info->insert(array("info" => "user", "last_uid" => 1));
@@ -146,4 +211,9 @@ class CEntertainment extends DBModel
         }
     }
 
+    protected function setDatabase(&$database)
+    {
+        $database = "centertainment";
+        // TODO: Implement setDatabase() method.
+    }
 }
