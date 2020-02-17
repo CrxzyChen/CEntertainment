@@ -42,7 +42,7 @@ class Manga extends ControllerBase
     {
         $latest = $this->ce->setResource("manga")->getLatest($_GET["limit"] ?? 10, $_GET["skip"] ?? 0);
         foreach ($latest as &$item) {
-            $item->thumb = $this->ic->getThumb($item->thumb_id);
+            $item->thumb = $this->ic->getThumbInfo($item->thumb_id);
             $item->info = $this->scrapy->getElementById($item->source, $item->source_id);
             unset($item->info->thumb_urls);
         }

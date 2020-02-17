@@ -12,8 +12,7 @@ use SimplePhp\Network;
 
 class ImageCloud
 {
-
-    public function getThumb(int $thumb_id)
+    public function getThumbInfo(int $thumb_id)
     {
         $url = "http://10.0.0.2:4396/?method=getThumbInfo&thumb_id=$thumb_id";
         return json_decode(Network::get($url));
