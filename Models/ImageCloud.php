@@ -17,4 +17,10 @@ class ImageCloud
         $url = "http://10.0.0.2:4396/?method=getThumbInfo&thumb_id=$thumb_id";
         return json_decode(Network::get($url));
     }
+
+    public function download($thumb_id)
+    {
+        $url = "http://10.0.0.2:4396/?method=Download&thumb_id=$thumb_id";
+        return Network::get($url);
+    }
 }

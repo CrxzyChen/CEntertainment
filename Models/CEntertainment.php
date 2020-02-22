@@ -127,6 +127,28 @@ class CEntertainment extends DBModel
         }
     }
 
+    /**
+     * @param ObjectId $resource_id
+     * @return mixed
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getResourceById(ObjectId $resource_id)
+    {
+        $this->isSetResource();
+        return $this->resource->findOne(array("_id" => $resource_id));
+    }
+
+    /**
+     * @param int $uid
+     * @return mixed
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getSubscribe(int $uid)
+    {
+        return $this->user->findOne(array("uid" => $uid), array("projection" => array("subscribe" => 1, "_id" => 0)));
+    }
+
     protected function onCreate()
     {
         $this->centertainment_info = $this->connect->Collection("centertainment_info");
@@ -182,7 +204,7 @@ class CEntertainment extends DBModel
     public function getLatest($limit = 10, $skip = 0)
     {
         $this->isSetResource();
-        return $this->resource->find(array(), array("limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => -1)));
+        return $this->resource->find(array("recommend" => array('$ne' => null)), array("limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => -1)));
     }
 
     /**

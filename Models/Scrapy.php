@@ -8,18 +8,23 @@
 
 namespace Models;
 
+use MongoDB\BSON\ObjectId;
+
 class Scrapy extends DBModel
 {
-
-
     protected function onCreate()
     {
         // TODO: Implement onCreate() method.
     }
 
-    public function getElementById($source, $id)
+    /**
+     * @param $source
+     * @param $id
+     * @return mixed
+     */
+    public function getElementById(string $source, ObjectId $id)
     {
-        return $this->connect->Collection($source)->findOne(array("_id" => $id));
+        return $this->{$source}->findOne(array("_id" => $id), array("projection" => array("thumb_urls" => 0)));
     }
 
     protected function setDatabase(&$database)
