@@ -136,7 +136,7 @@ class CEntertainment extends DBModel
     public function getResourceById(ObjectId $resource_id)
     {
         $this->isSetResource();
-        return $this->resource->findOne(array("_id" => $resource_id));
+        return $this->resource->findOne(array("_id" => $resource_id),array("projection" => array("labels_vec" => 0)));
     }
 
     /**
@@ -147,6 +147,28 @@ class CEntertainment extends DBModel
     public function getSubscribe(int $uid)
     {
         return $this->user->findOne(array("uid" => $uid), array("projection" => array("subscribe" => 1, "_id" => 0)));
+    }
+
+    /**
+     * @param array $resource_ids
+     * @return array|bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getResourceByIds(array $resource_ids)
+    {
+        return $this->resource->find(array("_id" => array('$in' => $resource_ids)));
+    }
+
+    /**
+     * @param ObjectId $source_id
+     * @return mixed
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getResourceBySourceId(ObjectId $source_id)
+    {
+        $this->isSetResource();
+        return $this->resource->findOne(array("source_id" => $source_id), array("projection" => array("labels_vec" => 0)));
     }
 
     protected function onCreate()
@@ -204,7 +226,7 @@ class CEntertainment extends DBModel
     public function getLatest($limit = 10, $skip = 0)
     {
         $this->isSetResource();
-        return $this->resource->find(array("recommend" => array('$ne' => null)), array("limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => -1)));
+        return $this->resource->find(array("recommend" => array('$ne' => null)), array("projection" => array("labels_vec" => 0), "limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => -1)));
     }
 
     /**
