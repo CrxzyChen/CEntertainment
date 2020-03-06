@@ -54,7 +54,7 @@ if (isset($_GET["method"])) {
 
 ob_start();
 
-if (is_array($view)) {
+if (is_array($view) || is_object($view)) {
     header("content-type:text/json");
     echo json_encode($view);
 } else if (is_resource($view) && get_resource_type($view) == "gd") {

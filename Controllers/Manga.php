@@ -38,9 +38,39 @@ class Manga extends ControllerBase
      * @throws \MongoDB\Driver\Exception\Exception
      * @throws \SimplePhp\Exception
      */
+    public function getUserDefine()
+    {
+        if (!empty($_GET["uid"]) && $_GET["uid"] != -1) {
+            $user = $this->ce->user->findOne(array("uid" => (int)$_GET["uid"]), array("projection" => array("config" => 1)));
+            if (!empty($user->config->picture_common)) {
+                $config = $user->config->picture_common;
+            }
+            $latest = $this->ce->setResource("manga")->getUserDefine(empty($_GET["limit"]) ? $_GET["limit"] : 10, empty($config) ? new \stdClass() : $config);
+            foreach ($latest as &$item) {
+                $item->thumb = $this->ic->getThumbInfo($item->thumb_id);
+                $item->info = $this->scrapy->getElementById($item->source, $item->source_id);
+                unset($item->info->thumb_urls);
+            }
+            return $latest;
+        } else {
+            throw new Exception("Less important param uid!");
+        }
+    }
+
+    /**
+     * @return mixed
+     * @throws \MongoDB\Driver\Exception\Exception
+     * @throws \SimplePhp\Exception
+     */
     public function Latest()
     {
-        $latest = $this->ce->setResource("manga")->getLatest($_GET["limit"] ?? 10, $_GET["skip"] ?? 0);
+        if (!empty($_GET["uid"]) && $_GET["uid"] != -1) {
+            $user = $this->ce->user->findOne(array("uid" => (int)$_GET["uid"]), array("projection" => array("config" => 1)));
+            if (!empty($user->config->picture_common)) {
+                $config = $user->config->picture_common;
+            }
+        }
+        $latest = $this->ce->setResource("manga")->getLatest(!empty($_GET["limit"]) ? $_GET["limit"] : 10, !empty($_GET["skip"]) ? $_GET["skip"] : 0, empty($config) ? new \stdClass() : $config);
         foreach ($latest as &$item) {
             $item->thumb = $this->ic->getThumbInfo($item->thumb_id);
             $item->info = $this->scrapy->getElementById($item->source, $item->source_id);
@@ -127,6 +157,46 @@ class Manga extends ControllerBase
             return $result;
         } else {
             throw new Exception("Less important param search_content!");
+        }
+    }
+
+    /**
+     * @return mixed
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getAllLabels()
+    {
+        return $this->ce->centertainment_info->findOne(array("info" => "manga_resource"))->all_labels;
+    }
+
+    /**
+     * @return array|bool
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getUserFocus()
+    {
+        if (!empty($_GET["uid"]) && $_GET["uid"] != -1) {
+            $user = $this->ce->user->findOne(array("uid" => (int)$_GET["uid"]), array("projection" => array("focus_artists" => 1, "config" => 1)));
+            if (!empty($user->focus_artists)) {
+                $focus_artists = $user->focus_artists;
+                if (!empty($user->config->picture_common)) {
+                    $config = $user->config->picture_common;
+                }
+                $focus = $this->ce->setResource("manga")->getUserFocus(!empty($_GET["limit"]) ? $_GET["limit"] : 10, !empty($_GET["skip"]) ? $_GET["skip"] : 0, $focus_artists, empty($config) ? new \stdClass() : $config);
+                $key =  array_column( $focus, 'thumb_id');
+                array_multisort($key, SORT_DESC, $focus);
+                foreach ($focus as &$item) {
+                    $item->thumb = $this->ic->getThumbInfo($item->thumb_id);
+                    $item->info = $this->scrapy->getElementById($item->source, $item->source_id);
+                    unset($item->info->thumb_urls);
+                }
+                return $focus;
+            } else {
+                return array();
+            }
+        } else {
+            throw new Exception("Less important param uid!");
         }
     }
 }

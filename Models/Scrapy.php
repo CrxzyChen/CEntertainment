@@ -41,7 +41,7 @@ class Scrapy extends DBModel
     {
         $query = array();
         if (!empty($search_condition->mark)) {
-            $query = array_merge_recursive($query, array("tags" => array('$in' => $search_condition->mark)));
+            $query = array_merge_recursive($query, array("tags" => array('$all' => $search_condition->mark)));
         }
         if (!empty($search_condition->filter)) {
             $query = array_merge_recursive($query, array("tags" => array('$nin' => $search_condition->filter)));

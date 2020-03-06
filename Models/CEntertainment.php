@@ -136,17 +136,19 @@ class CEntertainment extends DBModel
     public function getResourceById(ObjectId $resource_id)
     {
         $this->isSetResource();
-        return $this->resource->findOne(array("_id" => $resource_id),array("projection" => array("labels_vec" => 0)));
+        return $this->resource->findOne(array("_id" => $resource_id), array("projection" => array("labels_vec" => 0)));
     }
 
     /**
      * @param int $uid
+     * @param int $limit
+     * @param int $skip
      * @return mixed
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public function getSubscribe(int $uid)
+    public function getSubscribe(int $uid, int $limit, int $skip)
     {
-        return $this->user->findOne(array("uid" => $uid), array("projection" => array("subscribe" => 1, "_id" => 0)));
+        return $this->user->findOne(array("uid" => $uid), array("sort" => array("subscribe" => -1), "projection" => array("_id" => 1, "subscribe" => array('$slice' => array(-$skip, $limit)))));
     }
 
     /**
@@ -169,6 +171,69 @@ class CEntertainment extends DBModel
     {
         $this->isSetResource();
         return $this->resource->findOne(array("source_id" => $source_id), array("projection" => array("labels_vec" => 0)));
+    }
+
+    /**
+     * @param $uid
+     * @param $artist_name
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function addFocusArtist(int $uid, string $artist_name): bool
+    {
+        $this->user->findAndModify(array("uid" => $uid), array("\$addToSet" => array("focus_artists" => $artist_name)));
+        return true;
+    }
+
+    /**
+     * @param $uid
+     * @param $artist_name
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function removeFocusArtist(int $uid, string $artist_name): bool
+    {
+        $this->user->findAndModify(array("uid" => $uid), array("\$pull" => array("focus_artists" => $artist_name)));
+        return true;
+    }
+
+    /**
+     * @param $uid
+     * @param $artist_name
+     * @return bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function isFocusArtist(int $uid, string $artist_name): bool
+    {
+        $resource = $this->user->count(array("uid" => $uid, "focus_artists" => array('$in' => array($artist_name))));
+        if ($resource == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param int $limit
+     * @param int $skip
+     * @param $focus_artist
+     * @param \stdClass $config
+     * @return array|bool
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getUserFocus(int $limit, int $skip, $focus_artist, \stdClass $config)
+    {
+        $query = array("artists" => array('$in' => $focus_artist));
+        if (!empty($config->mark)) {
+            $query = array_merge_recursive($query, array("tags" => array('$in' => $config->mark)));
+        }
+        if (!empty($config->filter)) {
+            $query = array_merge_recursive($query, array("tags" => array('$nin' => $config->filter)));
+        }
+        if (!empty($config->language)) {
+            $query = array_merge_recursive($query, array("languages" => array('$in' => $config->language)));
+        }
+        return $this->resource->find($query, array("limit" => $limit, "skip" => $skip, "projection" => array()));
     }
 
     protected function onCreate()
@@ -218,15 +283,46 @@ class CEntertainment extends DBModel
 
     /**
      * @param int $limit
-     * @param int $skip
+     * @param \stdClass $config
      * @return mixed
      * @throws Exception
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public function getLatest($limit = 10, $skip = 0)
+    public function getUserDefine(int $limit = 10, \stdClass $config = null)
     {
+        $query = array("recommend" => array('$ne' => null));
+        if (!empty($config->mark)) {
+            $query = array_merge_recursive($query, array("tags" => array('$in' => $config->mark)));
+        }
+        if (!empty($config->filter)) {
+            $query = array_merge_recursive($query, array("tags" => array('$nin' => $config->filter)));
+        }
+        if (!empty($config->language)) {
+            $query = array_merge_recursive($query, array("languages" => array('$in' => $config->language)));
+        }
         $this->isSetResource();
-        return $this->resource->find(array("recommend" => array('$ne' => null)), array("projection" => array("labels_vec" => 0), "limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => -1)));
+        return ($this->resource->aggregate([array('$match' => $query), array('$sample' => array('size' => $limit))]));
+    }
+
+    /**
+     * @param int $limit
+     * @param int $skip
+     * @param \stdClass $config
+     * @return mixed
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getLatest(int $limit = 10, int $skip = 0, \stdClass $config = null)
+    {
+        $query = array("recommend" => array('$ne' => null));
+        if (!empty($config->filter)) {
+            $query = array_merge_recursive($query, array("tags" => array('$nin' => $config->filter)));
+        }
+        if (!empty($config->language)) {
+            $query = array_merge_recursive($query, array("languages" => array('$in' => $config->language)));
+        }
+        $this->isSetResource();
+        return $this->resource->find($query, array("projection" => array("labels_vec" => 0), "limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => -1)));
     }
 
     /**
@@ -245,6 +341,7 @@ class CEntertainment extends DBModel
      */
     private function getUserId()
     {
+
         if (!$this->centertainment_info->findOne(array("info" => "user"))) {
             $this->centertainment_info->insert(array("info" => "user", "last_uid" => 1));
             return (1);

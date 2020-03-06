@@ -73,10 +73,39 @@ class User extends ControllerBase
      * @throws Exception
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public function addLike()
+    public function addFocusArtist()
     {
-        if (isset($_GET["uid"]) && isset($_GET["resource_id"])) {
-            return $this->ce->addLike($_GET["uid"], new ObjectId($_GET["resource_id"]));
+        if (isset($_GET["uid"]) && isset($_GET["artist_name"])) {
+            return $this->ce->addFocusArtist($_GET["uid"], $_GET["artist_name"]);
+        } else {
+            throw new Exception("less necessary parameter!");
+        }
+    }
+
+
+    /**
+     * @return bool
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function removeFocusArtist()
+    {
+        if (isset($_GET["uid"]) && isset($_GET["artist_name"])) {
+            return $this->ce->removeFocusArtist($_GET["uid"], $_GET["artist_name"]);
+        } else {
+            throw new Exception("less necessary parameter!");
+        }
+    }
+
+    /**
+     * @return bool
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function isFocusArtist()
+    {
+        if (isset($_GET["uid"]) && isset($_GET["artist_name"])) {
+            return $this->ce->isFocusArtist($_GET["uid"], $_GET["artist_name"]);
         } else {
             throw new Exception("less necessary parameter!");
         }
@@ -165,8 +194,9 @@ class User extends ControllerBase
     {
         $resources = array();
         if (isset($_GET["uid"])) {
-            if (isset($this->ce->getSubscribe($_GET["uid"])->subscribe)) {
-                $resource_ids = array_reverse($this->ce->getSubscribe($_GET["uid"])->subscribe);
+            $result = $this->ce->getSubscribe($_GET["uid"], !empty($_GET["limit"]) ? (int)$_GET["limit"] : 10, !empty($_GET["skip"]) ? (int)$_GET["skip"] + 10 : 10);
+            if (isset($result->subscribe)) {
+                $resource_ids = array_reverse($result->subscribe);
                 if ($resource_ids) {
                     foreach ($resource_ids as $resource_id) {
                         $resource = $this->ce->setResource("manga")->getResourceById($resource_id);
@@ -179,6 +209,38 @@ class User extends ControllerBase
             return $resources;
         } else {
             throw new Exception("less necessary parameter!");
+        }
+    }
+
+    /**
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function getUserConfig()
+    {
+        if (isset($_GET["uid"])) {
+            $result = $this->ce->user->findOne(array("uid" => (int)$_GET["uid"]), array("projection" => array("config" . (empty($_GET["key"]) ? "" : ".{$_GET["key"]}") => 1)));
+            if (empty($result->config)) {
+                return new \stdClass();
+            } else {
+                return $result->config;
+            }
+        } else {
+            throw new Exception("less necessary parameter uid!");
+        }
+    }
+
+    /**
+     * @return array
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function setUserConfig()
+    {
+        if (!empty($_GET["uid"]) && !empty($_GET["key"]) && !empty($_GET["value"])) {
+            return $this->ce->user->findAndModify(array("uid" => (int)$_GET["uid"]), array('$set' => array("config" . (empty($_GET["key"]) ? "" : ".{$_GET["key"]}") => json_decode($_GET["value"]))));
+        } else {
+            throw new Exception("less necessary parameter uid , key, value!");
         }
     }
 }
