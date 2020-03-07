@@ -11,6 +11,16 @@ namespace Controllers;
 
 abstract class ControllerBase
 {
+
+    protected function addCheckRules(array $rules)
+    {
+
+    }
+
+    protected function addCheckRule($condition, $success, $false)
+    {
+    }
+
     abstract protected function onCreate();
 
     public function __construct()

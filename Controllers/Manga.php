@@ -12,6 +12,7 @@ use Models\CEntertainment;
 use Models\ImageCloud;
 use Models\Scrapy;
 use MongoDB\BSON\ObjectId;
+use SimplePhp\Checker;
 use SimplePhp\Exception;
 
 /**
@@ -21,6 +22,10 @@ use SimplePhp\Exception;
  */
 class Manga extends ControllerBase
 {
+    public function test(array $limit=array())
+    {
+    }
+
     /**
      * @throws \ReflectionException
      * @throws \SimplePhp\Exception
@@ -184,7 +189,7 @@ class Manga extends ControllerBase
                     $config = $user->config->picture_common;
                 }
                 $focus = $this->ce->setResource("manga")->getUserFocus(!empty($_GET["limit"]) ? $_GET["limit"] : 10, !empty($_GET["skip"]) ? $_GET["skip"] : 0, $focus_artists, empty($config) ? new \stdClass() : $config);
-                $key =  array_column( $focus, 'thumb_id');
+                $key = array_column($focus, 'thumb_id');
                 array_multisort($key, SORT_DESC, $focus);
                 foreach ($focus as &$item) {
                     $item->thumb = $this->ic->getThumbInfo($item->thumb_id);

@@ -30,9 +30,17 @@ class Exception extends \Exception
         exit;
     }
 
+    /**
+     * @param $class
+     * @throws \ReflectionException
+     */
     public static function autoload_register($class)
     {
-        $class_path = str_replace('\\', DIRECTORY_SEPARATOR, $class);
-        require_once LOCAL_ROOT . DIRECTORY_SEPARATOR . "$class_path.php";
+        $class_relative_path = str_replace('\\', DIRECTORY_SEPARATOR, $class);
+        if (file_exists(LOCAL_ROOT . DIRECTORY_SEPARATOR . "$class_relative_path.php")) {
+            require_once LOCAL_ROOT . DIRECTORY_SEPARATOR . "$class_relative_path.php";
+        } else {
+            throw new \ReflectionException();
+        }
     }
 }
