@@ -12,7 +12,6 @@ use Models\CEntertainment;
 use Models\ImageCloud;
 use Models\Scrapy;
 use MongoDB\BSON\ObjectId;
-use SimplePhp\Checker;
 use SimplePhp\Exception;
 
 /**
@@ -22,8 +21,9 @@ use SimplePhp\Exception;
  */
 class Manga extends ControllerBase
 {
-    public function test(array $limit=array())
+    public function test(int $limit)
     {
+        return $limit;
     }
 
     /**
