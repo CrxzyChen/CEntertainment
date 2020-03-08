@@ -19,7 +19,7 @@ class Gate
     private $parameters;
     private $last_error;
 
-    public function __construct($class, $method, $parameters)
+    public function __construct(&$class, &$method, &$parameters)
     {
         $this->class = $class;
         $this->method = $method;

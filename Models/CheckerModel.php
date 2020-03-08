@@ -11,7 +11,7 @@ namespace Models;
 
 interface CheckerModel
 {
-    public function judge($class, $method, $parameters): bool;
+    public function judge(&$class, &$method, &$parameters): bool;
 
     public function success();
 

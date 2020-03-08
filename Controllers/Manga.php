@@ -21,11 +21,6 @@ use SimplePhp\Exception;
  */
 class Manga extends ControllerBase
 {
-    public function test(int $limit)
-    {
-        return $limit;
-    }
-
     /**
      * @throws \ReflectionException
      * @throws \SimplePhp\Exception
@@ -63,19 +58,22 @@ class Manga extends ControllerBase
     }
 
     /**
+     * @param int $uid
+     * @param int $limit
+     * @param int $skip
      * @return mixed
+     * @throws Exception
      * @throws \MongoDB\Driver\Exception\Exception
-     * @throws \SimplePhp\Exception
      */
-    public function Latest()
+    public function Latest(int $uid = -1, int $limit = 10, int $skip = 0)
     {
-        if (!empty($_GET["uid"]) && $_GET["uid"] != -1) {
-            $user = $this->ce->user->findOne(array("uid" => (int)$_GET["uid"]), array("projection" => array("config" => 1)));
+        if ($uid != -1) {
+            $user = $this->ce->user->findOne(array("uid" => $uid), array("projection" => array("config" => 1)));
             if (!empty($user->config->picture_common)) {
                 $config = $user->config->picture_common;
             }
         }
-        $latest = $this->ce->setResource("manga")->getLatest(!empty($_GET["limit"]) ? $_GET["limit"] : 10, !empty($_GET["skip"]) ? $_GET["skip"] : 0, empty($config) ? new \stdClass() : $config);
+        $latest = $this->ce->setResource("manga")->getLatest($limit, $skip, empty($config) ? new \stdClass() : $config);
         foreach ($latest as &$item) {
             $item->thumb = $this->ic->getThumbInfo($item->thumb_id);
             $item->info = $this->scrapy->getElementById($item->source, $item->source_id);

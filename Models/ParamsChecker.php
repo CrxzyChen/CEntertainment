@@ -17,34 +17,40 @@ class ParamsChecker implements CheckerModel
     );
     private $last_error;
 
-    public function judge($class, $method, $parameters): bool
+    public function judge(&$class, &$method, &$parameters): bool
     {
-        foreach ($parameters as $parameter) {
-            if ($parameter->default_value === null && $parameter->value === null) {
-                $this->last_error = ParamsChecker::$error_set[101];
-                $this->last_error['detail'] = array($parameter->name);
-                return false;
-            }
-            if ($parameter->type != null) {
+        foreach ($parameters as &$parameter) {
+            if ($parameter->value !== null && $parameter->type !== null) {
                 if ($parameter->type == "array") {
-                    if (!is_array(json_decode($_GET[$parameter->name], true))) {
+                    if (!is_array(json_decode($parameter->value, true))) {
                         $this->last_error = ParamsChecker::$error_set[102];
                         $this->last_error["detail"] = array("parameter" => $parameter->name, "error:" => "need a array");
                         return false;
+                    } else {
+                        $parameter->value = json_decode($parameter->value, true);
                     }
                 } else if ($parameter->type == "string") {
-                    if (!is_string($_GET[$parameter->name])) {
+                    if (!is_string($parameter->value)) {
                         $this->last_error = ParamsChecker::$error_set[102];
                         $this->last_error["detail"] = array("parameter" => $parameter->name, "error:" => "need a string");
                         return false;
                     }
                 } else if ($parameter->type == "int") {
-                    if (!is_numeric($_GET[$parameter->name])) {
+                    if (!is_numeric($parameter->value)) {
                         $this->last_error = ParamsChecker::$error_set[102];
                         $this->last_error["detail"] = array("parameter" => $parameter->name, "error:" => "need a int");
                         return false;
+                    } else {
+                        $parameter->value = intval($parameter->value);
                     }
                 }
+            }
+            if ($parameter->default_value === null && $parameter->value === null) {
+                $this->last_error = ParamsChecker::$error_set[101];
+                $this->last_error['detail'] = array($parameter->name);
+                return false;
+            } else if ($parameter->default_value !== null && $parameter->value === null) {
+                $parameter->value = $parameter->default_value;
             }
         }
         return true;
