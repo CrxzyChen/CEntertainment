@@ -19,7 +19,7 @@ use SimplePhp\Exception;
  * @property \Models\ImageCloud ic
  * @property \Models\Scrapy scrapy
  */
-class Manga extends ControllerBase
+class Picture extends ControllerBase
 {
     /**
      * @throws \ReflectionException
@@ -61,11 +61,12 @@ class Manga extends ControllerBase
      * @param int $uid
      * @param int $limit
      * @param int $skip
+     * @param string $resource
      * @return mixed
      * @throws Exception
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public function Latest(int $uid = -1, int $limit = 10, int $skip = 0)
+    public function Latest(int $uid = -1, int $limit = 10, int $skip = 0, string $resource = "manga")
     {
         if ($uid != -1) {
             $user = $this->ce->user->findOne(array("uid" => $uid), array("projection" => array("config" => 1)));
@@ -73,11 +74,9 @@ class Manga extends ControllerBase
                 $config = $user->config->picture_common;
             }
         }
-        $latest = $this->ce->setResource("manga")->getLatest($limit, $skip, empty($config) ? new \stdClass() : $config);
+        $latest = $this->ce->getLatest($resource, $limit, $skip, empty($config) ? new \stdClass() : $config);
         foreach ($latest as &$item) {
             $item->thumb = $this->ic->getThumbInfo($item->thumb_id);
-            $item->info = $this->scrapy->getElementById($item->source, $item->source_id);
-            unset($item->info->thumb_urls);
         }
         return $latest;
     }
@@ -107,16 +106,15 @@ class Manga extends ControllerBase
     }
 
     /**
+     * @param $resource_id
+     * @param string $resource
+     * @return int|mixed
+     * @throws Exception
      * @throws \MongoDB\Driver\Exception\Exception
-     * @throws \SimplePhp\Exception
      */
-    public function upClickedCount()
+    public function upClickedCount($resource_id, $resource = "manga")
     {
-        if (isset($_GET["resource_id"])) {
-            return $this->ce->setResource("manga")->upClickedCount(new ObjectId($_GET["resource_id"]));
-        } else {
-            throw new Exception("Less important param resource id!");
-        }
+        return $this->ce->setResource($resource)->upClickedCount(new ObjectId($resource_id));
     }
 
     /**
@@ -149,15 +147,11 @@ class Manga extends ControllerBase
     {
         if (isset($_GET["search_content"])) {
             $search_content = json_decode($_GET["search_content"]);
-            $result = array();
-            $opus = $this->scrapy->getOpus("nhentai", $search_content, isset($_GET["limit"]) ? $_GET["limit"] : 10, isset($_GET["skip"]) ? $_GET["skip"] : 0);
-            foreach ($opus as $opu) {
-                $resource = $this->ce->setResource("manga")->getResourceBySourceId($opu->_id);
-                $resource->info = $opu;
-                $resource->thumb = $this->ic->getThumbInfo($resource->thumb_id);
-                $result[] = $resource;
+            $opus = $this->ce->setResource($search_content->resource_kind)->getOpus( $search_content, isset($_GET["limit"]) ? $_GET["limit"] : 10, isset($_GET["skip"]) ? $_GET["skip"] : 0);
+            foreach ($opus as &$opu) {
+                $opu->thumb = $this->ic->getThumbInfo($opu->thumb_id);
             }
-            return $result;
+            return $opus;
         } else {
             throw new Exception("Less important param search_content!");
         }

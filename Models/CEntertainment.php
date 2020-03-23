@@ -305,24 +305,37 @@ class CEntertainment extends DBModel
     }
 
     /**
+     * @param string $resource
      * @param int $limit
      * @param int $skip
      * @param \stdClass $config
      * @return mixed
-     * @throws Exception
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public function getLatest(int $limit = 10, int $skip = 0, \stdClass $config = null)
+    public function getLatest(string $resource, int $limit = 10, int $skip = 0, \stdClass $config = null)
     {
-        $query = array("recommend" => array('$ne' => null));
-        if (!empty($config->filter)) {
-            $query = array_merge_recursive($query, array("tags" => array('$nin' => $config->filter)));
+        $sort = -1;
+        $query = array();
+        $this->setResource($resource);
+
+        if ($resource == "manga") {
+            $query ["recommend"] = array('$ne' => null);
+            if (!empty($config->filter)) {
+                $query = array_merge_recursive($query, array("tags" => array('$nin' => $config->filter)));
+            }
+            if (!empty($config->language)) {
+                $query = array_merge_recursive($query, array("languages" => array('$in' => $config->language)));
+            }
+        } else {
+            if (!empty($config->syasinn_order)) {
+                if ($config->syasinn_order == "Random") {
+                    return $this->resource->aggregate([array('$sample' => array('size' => $limit))]);
+                } else if ($config->syasinn_order == "Desc") {
+                    $sort = 1;
+                }
+            }
         }
-        if (!empty($config->language)) {
-            $query = array_merge_recursive($query, array("languages" => array('$in' => $config->language)));
-        }
-        $this->isSetResource();
-        return $this->resource->find($query, array("projection" => array("labels_vec" => 0), "limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => -1)));
+        return $this->resource->find($query, array("limit" => $limit, "skip" => $skip, "sort" => array("thumb_id" => $sort)));
     }
 
     /**
@@ -356,5 +369,20 @@ class CEntertainment extends DBModel
     {
         $database = "centertainment";
         // TODO: Implement setDatabase() method.
+    }
+
+    public function getOpus(\stdClass $search_condition, int $limit = 10, int $skip = 0)
+    {
+        $query = array();
+        if (!empty($search_condition->mark)) {
+            $query = array_merge_recursive($query, array("tags" => array('$all' => $search_condition->mark)));
+        }
+        if (!empty($search_condition->filter)) {
+            $query = array_merge_recursive($query, array("tags" => array('$nin' => $search_condition->filter)));
+        }
+        if (!empty($search_condition->language)) {
+            $query = array_merge_recursive($query, array("languages" => array('$in' => $search_condition->language)));
+        }
+        return $this->resource->find($query, array("limit" => $limit, "skip" => $skip, "projection" => array("thumb_urls" => 0)));
     }
 }

@@ -91,7 +91,7 @@ try {
 
 ob_start();
 
-if (is_array($view) || is_object($view) || is_bool($view)) {
+if (is_array($view) || is_object($view)) {
     header("content-type:text/json");
     echo json_encode($view);
 } else if (is_resource($view) && get_resource_type($view) == "gd") {
@@ -114,7 +114,11 @@ if (is_array($view) || is_object($view) || is_bool($view)) {
     }
 } else {
     header("content-type:text/html");
-    echo $view;
+    if (is_bool($view)) {
+        echo $view ? "true" : "false";
+    } else {
+        echo $view;
+    }
 }
 
 ob_end_flush();

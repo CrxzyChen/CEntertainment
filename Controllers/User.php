@@ -110,7 +110,19 @@ class User extends ControllerBase
             throw new Exception("less necessary parameter!");
         }
     }
-
+    /**
+     * @return bool
+     * @throws Exception
+     * @throws \MongoDB\Driver\Exception\Exception
+     */
+    public function addLike()
+    {
+        if (isset($_GET["uid"]) && isset($_GET["resource_id"])) {
+            return $this->ce->addLike($_GET["uid"], new ObjectId($_GET["resource_id"]));
+        } else {
+            throw new Exception("less necessary parameter!");
+        }
+    }
     /**
      * @return bool
      * @throws Exception
