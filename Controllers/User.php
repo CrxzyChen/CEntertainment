@@ -110,6 +110,7 @@ class User extends ControllerBase
             throw new Exception("less necessary parameter!");
         }
     }
+
     /**
      * @return bool
      * @throws Exception
@@ -123,6 +124,7 @@ class User extends ControllerBase
             throw new Exception("less necessary parameter!");
         }
     }
+
     /**
      * @return bool
      * @throws Exception
@@ -206,7 +208,16 @@ class User extends ControllerBase
     {
         $resources = array();
         if (isset($_GET["uid"])) {
-            $result = $this->ce->getSubscribe($_GET["uid"], !empty($_GET["limit"]) ? (int)$_GET["limit"] : 10, !empty($_GET["skip"]) ? (int)$_GET["skip"] + 10 : 10);
+            $user = $this->ce->user->findOne(array("uid" => (int)$_GET["uid"]), array("projection" => array("config" => 1)));
+            if (!empty($user->config->subscribe_common)) {
+                $config = $user->config->subscribe_common;
+            }
+            if (!empty($config) && $config->is_ordered == false) {
+                $ordered = false;
+            } else {
+                $ordered = true;
+            }
+            $result = $this->ce->getSubscribe($_GET["uid"], !empty($_GET["limit"]) ? (int)$_GET["limit"] : 10, !empty($_GET["skip"]) ? (int)$_GET["skip"] + 10 : 10, $ordered);
             if (isset($result->subscribe)) {
                 $resource_ids = array_reverse($result->subscribe);
                 if ($resource_ids) {

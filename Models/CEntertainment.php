@@ -143,12 +143,23 @@ class CEntertainment extends DBModel
      * @param int $uid
      * @param int $limit
      * @param int $skip
+     * @param bool $ordered
      * @return mixed
      * @throws \MongoDB\Driver\Exception\Exception
      */
-    public function getSubscribe(int $uid, int $limit, int $skip)
+    public function getSubscribe(int $uid, int $limit, int $skip, bool $ordered)
     {
-        return $this->user->findOne(array("uid" => $uid), array("sort" => array("subscribe" => -1), "projection" => array("_id" => 1, "subscribe" => array('$slice' => array(-$skip, $limit)))));
+        if ($ordered == true) {
+            return $this->user->findOne(array("uid" => $uid), array("sort" => array("subscribe" => -1), "projection" => array("_id" => 1, "subscribe" => array('$slice' => array(-$skip, $limit)))));
+        } else {
+            $result = $this->user->findOne(array("uid" => $uid), array("sort" => array("subscribe" => -1), "projection" => array("_id" => 1, "subscribe" => 1)));
+            $subscribe = array();
+            foreach (array_rand($result->subscribe, $limit) as $key) {
+                $subscribe[] = $result->subscribe[$key];
+            }
+            $result->subscribe = $subscribe;
+            return $result;
+        }
     }
 
     /**
@@ -233,7 +244,7 @@ class CEntertainment extends DBModel
         if (!empty($config->language)) {
             $query = array_merge_recursive($query, array("languages" => array('$in' => $config->language)));
         }
-        return $this->resource->find($query, array("limit" => $limit, "skip" => $skip, "projection" => array()));
+        return $this->resource->find($query, array("sort" => array("_id" => -1), "limit" => $limit, "skip" => $skip, "projection" => array()));
     }
 
     protected function onCreate()
