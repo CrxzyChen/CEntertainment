@@ -154,9 +154,18 @@ class CEntertainment extends DBModel
         } else {
             $result = $this->user->findOne(array("uid" => $uid), array("sort" => array("subscribe" => -1), "projection" => array("_id" => 1, "subscribe" => 1)));
             $subscribe = array();
-            foreach (array_rand($result->subscribe, $limit) as $key) {
+
+            /*random number case 0*/
+//            foreach (array_rand($result->subscribe, $limit) as $key) {
+//                $subscribe[] = $result->subscribe[$key];
+//            }
+
+            /*random number case 1*/
+            for ($i = 0; $i < 10; $i++) {
+                $key = rand(0, sizeof($result->subscribe));
                 $subscribe[] = $result->subscribe[$key];
             }
+
             $result->subscribe = $subscribe;
             return $result;
         }
@@ -235,12 +244,12 @@ class CEntertainment extends DBModel
     public function getUserFocus(int $limit, int $skip, $focus_artist, \stdClass $config)
     {
         $query = array("artists" => array('$in' => $focus_artist));
-        if (!empty($config->mark)) {
-            $query = array_merge_recursive($query, array("tags" => array('$in' => $config->mark)));
-        }
-        if (!empty($config->filter)) {
-            $query = array_merge_recursive($query, array("tags" => array('$nin' => $config->filter)));
-        }
+//        if (!empty($config->mark)) {
+//            $query = array_merge_recursive($query, array("tags" => array('$in' => $config->mark)));
+//        }
+//        if (!empty($config->filter)) {
+//            $query = array_merge_recursive($query, array("tags" => array('$nin' => $config->filter)));
+//        }
         if (!empty($config->language)) {
             $query = array_merge_recursive($query, array("languages" => array('$in' => $config->language)));
         }
